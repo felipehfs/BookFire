@@ -1,0 +1,11 @@
+table thead{
+    background: #ccc;
+    color: black;
+    border-collapse: collapse;
+}
+table {
+    width: 100%;
+}
+table tbody tr td {
+    text-align: center;
+}
