@@ -1,3 +1,5 @@
+//Package model represents the
+// bussiness logic of the Rest api
 package model
 
 import (
@@ -5,16 +7,19 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// ArtistDAO
+// ArtistDAO represent the data access object
+// of Artist and makes all operation with database
 type ArtistDAO struct {
 	conn *mgo.Session
 }
 
-// NewArtistDAO returns the a new instance
+// NewArtistDAO the contruct of ArtistDao
+// returns the a new instance
 func NewArtistDAO(c *mgo.Session) *ArtistDAO {
 	return &ArtistDAO{c}
 }
 
+// The getColletion retrieves the collection of dao to manage
 func (dao ArtistDAO) getCollection() *mgo.Collection {
 	return dao.conn.DB("bookfire").C("artists")
 }
@@ -33,7 +38,7 @@ func (dao ArtistDAO) Read() ([]Artist, error) {
 	return results, nil
 }
 
-// Update change the data of artist
+// Update change the data of artist by ID
 func (dao ArtistDAO) Update(id string, a Artist) error {
 	return dao.getCollection().Update(bson.M{"_id": bson.ObjectIdHex(id)}, a)
 }
