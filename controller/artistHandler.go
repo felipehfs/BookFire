@@ -5,6 +5,7 @@ package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -29,6 +30,7 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 	// Convert the resquest from artist object
 	if err := json.NewDecoder(req.Body).Decode(&artist); err != nil {
 		// if a error exists then throw the error status code
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	dao := model.NewArtistDAO(handle.db)
@@ -36,9 +38,11 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 	// Insert the data and then if
 	// exists a error throw the error status code
 	if err := dao.Create(artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	// Response of request with configuration of type of content
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(artist)
 }
@@ -49,9 +53,11 @@ func (handle ArtistHandler) Read(w http.ResponseWriter, req *http.Request) {
 	results, err := dao.Read()
 
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	// setup the response to send an json body
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
@@ -63,6 +69,7 @@ func (handle ArtistHandler) Update(w http.ResponseWriter, req *http.Request) {
 	var artist model.Artist
 	// Parse the request and verify if a error exists
 	if err := json.NewDecoder(req.Body).Decode(&artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 	// Get all parameters of the request
@@ -72,9 +79,11 @@ func (handle ArtistHandler) Update(w http.ResponseWriter, req *http.Request) {
 	dao := model.NewArtistDAO(handle.db)
 
 	if err := dao.Update(params["id"], artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	// setup the response of response
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(artist)
@@ -86,8 +95,9 @@ func (handle ArtistHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
 	// remove the artist from the database by ID
 	if err := model.NewArtistDAO(handle.db).Delete(params["id"]); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Write([]byte("success!"))
 }
