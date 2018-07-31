@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"testing"
 )
@@ -44,11 +43,29 @@ func TestCreateArtist(t *testing.T) {
 		t.Error(err)
 	}
 	// If the status code is not ok the error must be send
-	if resp.Status != "200" {
-		body, err := ioutil.ReadAll(resp.Body)
+	checkRequestOK(resp, t)
+}
+
+func checkRequestOK(response *http.Response, t *testing.T) {
+	if response.StatusCode != http.StatusOK {
+		body, err := ioutil.ReadAll(response.Body)
 		if err != nil {
 			t.Fatal(err)
 		}
-		log.Println(string(body))
+		t.Errorf("Status code different received: %s %s", response.Status, string(body))
 	}
+}
+
+func TestReadArtists(t *testing.T) {
+	request, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		t.Error(err)
+	}
+	client := http.Client{}
+	response, err := client.Do(request)
+	if err != nil {
+		t.Error(err)
+	}
+
+	checkRequestOK(response, t)
 }
