@@ -61,11 +61,41 @@ func TestReadArtists(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	client := http.Client{}
+	client := &http.Client{}
 	response, err := client.Do(request)
 	if err != nil {
 		t.Error(err)
 	}
 
 	checkRequestOK(response, t)
+}
+
+func TestFindArtists(t *testing.T) {
+	tt := []struct {
+		id       string
+		name     string
+		expected int
+	}{
+		{"5b6057e8767bb623cf13c305", "busca que funciona", 200},
+		{"5b608966767bb623cf13c303", "busca que falha", 404},
+	}
+
+	for _, tr := range tt {
+		t.Run(tr.name, func(t *testing.T) {
+			req, err := http.NewRequest("GET", url+tr.id, nil)
+			if err != nil {
+				t.Fail()
+			}
+
+			client := &http.Client{}
+			resp, err := client.Do(req)
+			if err != nil {
+				t.Fail()
+			}
+
+			if resp.StatusCode != tr.expected {
+				t.Errorf("Status code expected %d received %d", tr.expected, resp.StatusCode)
+			}
+		})
+	}
 }

@@ -43,6 +43,25 @@ func (dao ArtistDAO) Update(id string, a Artist) error {
 	return dao.getCollection().Update(bson.M{"_id": bson.ObjectIdHex(id)}, a)
 }
 
+// FindByName search the artist by name
+func (dao ArtistDAO) FindByName(name string) (*Artist, error) {
+	var result Artist
+	if err := dao.getCollection().Find(bson.M{"name": name}).One(&result); err != nil {
+		return nil, err
+	}
+	return &result, nil
+}
+
+// FindByID search the artist by ID
+func (dao ArtistDAO) FindByID(id string) (*Artist, error) {
+	var searched Artist
+	err := dao.getCollection().Find(bson.M{"_id": bson.ObjectIdHex(id)}).One(&searched)
+	if err != nil {
+		return nil, err
+	}
+	return &searched, nil
+}
+
 // Delete removes the id from artist
 func (dao ArtistDAO) Delete(id string) error {
 	return dao.getCollection().Remove(bson.M{"_id": bson.ObjectIdHex(id)})

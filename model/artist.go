@@ -8,7 +8,7 @@ import (
 // Artist represent a person
 type Artist struct {
 	ID          bson.ObjectId `json:"id,omitempty" bson:"_id,omitempty"`
-	Name        string        `json:"name,omitmepty" bson:"name,omitempty"`
-	Email       string        `json:"email,omitempty" bson:"email,omitempty"`
-	Description string        `json:"description,omitempty" bson:"description,omitempty"`
+	Name        string        `json:"name,omitmepty" bson:"name,omitempty" binding:"required"`
+	Email       string        `json:"email,omitempty" bson:"email,omitempty" binding:"required"`
+	Description string        `json:"description,omitempty" bson:"description,omitempty" binding:"required"`
 }

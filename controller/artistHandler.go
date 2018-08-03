@@ -89,6 +89,21 @@ func (handle ArtistHandler) Update(w http.ResponseWriter, req *http.Request) {
 	json.NewEncoder(w).Encode(artist)
 }
 
+// FindByID search the artist on the database
+func (handle ArtistHandler) FindByID(w http.ResponseWriter, req *http.Request) {
+	param := mux.Vars(req)
+
+	artist, err := model.NewArtistDAO(handle.db).FindByID(param["id"])
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(artist)
+}
+
 // Delete - removes the resource from the database
 func (handle ArtistHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	// get the parameter from the url
@@ -98,6 +113,7 @@ func (handle ArtistHandler) Delete(w http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
 	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Write([]byte("success!"))
 }

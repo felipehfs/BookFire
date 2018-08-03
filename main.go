@@ -22,6 +22,7 @@ func main() {
 
 	router.HandleFunc("/artists/", artistHandler.Create).Methods("POST")
 	router.HandleFunc("/artists/", artistHandler.Read).Methods("GET")
+	router.HandleFunc("/artists/{id}", artistHandler.FindByID).Methods("GET")
 	router.HandleFunc("/artists/{id}", artistHandler.Update).Methods("PUT")
 	router.HandleFunc("/artists/{id}", artistHandler.Delete).Methods("DELETE")
 
