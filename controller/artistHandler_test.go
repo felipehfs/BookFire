@@ -142,3 +142,37 @@ func TestFindArtists(t *testing.T) {
 		})
 	}
 }
+
+func TestUpdateArtist(t *testing.T) {
+	artists, err := getArtists()
+	if err != nil {
+		t.Error(err)
+	}
+
+	last := len(artists) - 1
+	updated := artists[last]
+	updated.Name = "Alter"
+	updated.Email = "alterado@gmail.com"
+
+	newURL := url + updated.ID.Hex()
+
+	body, err := json.Marshal(updated)
+	if err != nil {
+		t.Error(err)
+	}
+	req, err := http.NewRequest("PUT", newURL, bytes.NewBuffer(body))
+
+	if err != nil {
+		t.Error(err)
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	if res.StatusCode != http.StatusOK {
+		t.Errorf("Status expected %v got %v", http.StatusOK, res.StatusCode)
+	}
+}

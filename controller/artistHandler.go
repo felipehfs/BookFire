@@ -31,7 +31,7 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 	if err := json.NewDecoder(req.Body).Decode(&artist); err != nil {
 		// if a error exists then throw the error status code
 		log.Println(err)
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
 	}
 	dao := model.NewArtistDAO(handle.db)
 
