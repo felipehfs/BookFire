@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"testing"
+
+	"github.com/bookfire/model"
 )
 
 const (
@@ -44,6 +46,17 @@ func TestCreateArtist(t *testing.T) {
 	}
 	// If the status code is not ok the error must be send
 	checkRequestOK(resp, t)
+	artists, err := getArtists()
+
+	if err != nil {
+		t.Error(err)
+	}
+	// Check the persistence of the data
+	last := len(artists) - 1
+	equals := artists[last].Name == request.Name && artists[last].Email == request.Email
+	if !equals {
+		t.Errorf("Values are different: expected %s when %s", request.Name, artists[0].Name)
+	}
 }
 
 func checkRequestOK(response *http.Response, t *testing.T) {
@@ -70,13 +83,43 @@ func TestReadArtists(t *testing.T) {
 	checkRequestOK(response, t)
 }
 
+// getArtists retrieves all data from the server
+// if exists
+func getArtists() ([]model.Artist, error) {
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+
+	if err != nil {
+		return nil, err
+	}
+
+	var artists []model.Artist
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err := json.Unmarshal(body, &artists); err != nil {
+		return nil, err
+	}
+
+	return artists, nil
+}
+
 func TestFindArtists(t *testing.T) {
+	searched, err := getArtists()
+	if err != nil {
+		t.Error(err)
+	}
+
 	tt := []struct {
 		id       string
 		name     string
 		expected int
 	}{
-		{"5b6057e8767bb623cf13c305", "busca que funciona", 200},
+		{searched[0].ID.String(), "busca que funciona", 200},
 		{"5b608966767bb623cf13c303", "busca que falha", 404},
 	}
 
