@@ -150,6 +150,9 @@ func TestUpdateArtist(t *testing.T) {
 	}
 
 	last := len(artists) - 1
+	if last < 0 {
+		t.Errorf("empty list")
+	}
 	updated := artists[last]
 	updated.Name = "Alter"
 	updated.Email = "alterado@gmail.com"
@@ -174,5 +177,38 @@ func TestUpdateArtist(t *testing.T) {
 
 	if res.StatusCode != http.StatusOK {
 		t.Errorf("Status expected %v got %v", http.StatusOK, res.StatusCode)
+	}
+}
+
+func TestDeleteArtist(t *testing.T) {
+	artists, err := getArtists()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(artists) < 0 {
+		t.Error("empty list")
+	}
+	last := artists[len(artists)-1]
+	tt := []struct {
+		id           string
+		expectedCode int
+	}{
+		{last.ID.Hex(), 200},
+		{"5b608966767bb623cf13c303", 500},
+	}
+	for _, tr := range tt {
+		req, err := http.NewRequest("DELETE", url+tr.id, nil)
+		if err != nil {
+			t.Error(err)
+		}
+		client := &http.Client{}
+		res, err := client.Do(req)
+		if err != nil {
+			t.Error(err)
+		}
+
+		if res.StatusCode != tr.expectedCode {
+			t.Errorf("Error: expected %v got %v\n", tr.expectedCode, res.StatusCode)
+		}
 	}
 }
