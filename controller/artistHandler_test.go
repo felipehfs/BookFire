@@ -212,3 +212,51 @@ func TestDeleteArtist(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdateManyCase(t *testing.T) {
+	tt := []struct {
+		name           string
+		id             string
+		body           string
+		statusExpected int
+	}{
+		{"Update which exists",
+			"5b6057e8767bb623cf13c305",
+			`{"name": "Belchior updated", "email": "belchiorupdated@gmail.com"}`,
+			200},
+		{"Update which id not exists",
+			"5b6057e8767bb423cf13c305",
+			`{"name": "Belchior", "email": "belchior@gmail.com"}`,
+			500},
+		{
+			"Update which id returns error",
+			"5b6057e8767bb623cf13c305",
+			`{ "_id": 5b6057e8767bb623cf13c303, 
+				"name": "Belchior error", "email": "belchior@gmail.com",
+				"description": "fjfjs"}`,
+			500},
+		{
+			"Update which values the same",
+			"5b47efb6391bc8b26eb2deac",
+			`{"name": "Ken thompson", "email": "kenthompson@gmail.com", "description": "O cara que criou o grande C"}`,
+			200},
+	}
+
+	for _, tr := range tt {
+		req, err := http.NewRequest("PUT", url+tr.id, bytes.NewBuffer([]byte(tr.body)))
+		if err != nil {
+			t.Error(err)
+		}
+
+		client := &http.Client{}
+		resp, err := client.Do(req)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if resp.StatusCode != tr.statusExpected {
+			t.Errorf("Error: expected %d got %d\n", tr.statusExpected, resp.StatusCode)
+		}
+	}
+}
