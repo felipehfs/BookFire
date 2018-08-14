@@ -1,9 +1,10 @@
-// package controller test the controller
+// Package controller tests the controller
 package controller
 
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"testing"
@@ -12,9 +13,12 @@ import (
 )
 
 const (
-	url = "http://localhost:8081/artists/"
+	PORT = 8081
 )
 
+var artistsRoute = fmt.Sprintf("http://localhost:%d/artists/", PORT)
+
+// TestCreateArtist tests if the insertion works well
 func TestCreateArtist(t *testing.T) {
 	var request = struct {
 		Name        string
@@ -27,31 +31,30 @@ func TestCreateArtist(t *testing.T) {
 			sem conta no banco, sem parentes importantes e vindo do interior`,
 	}
 
-	// Convert to bytes the body of request
 	jsonData, err := json.Marshal(request)
 	if err != nil {
 		t.Error(err)
 	}
 
 	client := &http.Client{}
-	// setup the request to server
-	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+
+	req, err := http.NewRequest("POST", artistsRoute, bytes.NewBuffer(jsonData))
 	if err != nil {
 		t.Error(err)
 	}
-	// make the request to server
+
 	resp, err := client.Do(req)
 	if err != nil {
 		t.Error(err)
 	}
-	// If the status code is not ok the error must be send
+
 	checkRequestOK(resp, t)
 	artists, err := getArtists()
 
 	if err != nil {
 		t.Error(err)
 	}
-	// Check the persistence of the data
+
 	last := len(artists) - 1
 	equals := artists[last].Name == request.Name && artists[last].Email == request.Email
 	if !equals {
@@ -59,6 +62,7 @@ func TestCreateArtist(t *testing.T) {
 	}
 }
 
+// checkRequestOK makes the test to fail if status code is not ok
 func checkRequestOK(response *http.Response, t *testing.T) {
 	if response.StatusCode != http.StatusOK {
 		body, err := ioutil.ReadAll(response.Body)
@@ -69,8 +73,9 @@ func checkRequestOK(response *http.Response, t *testing.T) {
 	}
 }
 
+// TestReadArtists tests the data retrieve
 func TestReadArtists(t *testing.T) {
-	request, err := http.NewRequest("GET", url, nil)
+	request, err := http.NewRequest("GET", artistsRoute, nil)
 	if err != nil {
 		t.Error(err)
 	}
@@ -86,7 +91,7 @@ func TestReadArtists(t *testing.T) {
 // getArtists retrieves all data from the server
 // if exists
 func getArtists() ([]model.Artist, error) {
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequest("GET", artistsRoute, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -108,6 +113,7 @@ func getArtists() ([]model.Artist, error) {
 	return artists, nil
 }
 
+// TestFindArtist searches the data through the get method
 func TestFindArtists(t *testing.T) {
 	searched, err := getArtists()
 	if err != nil {
@@ -125,7 +131,7 @@ func TestFindArtists(t *testing.T) {
 
 	for _, tr := range tt {
 		t.Run(tr.name, func(t *testing.T) {
-			req, err := http.NewRequest("GET", url+tr.id, nil)
+			req, err := http.NewRequest("GET", artistsRoute+tr.id, nil)
 			if err != nil {
 				t.Fail()
 			}
@@ -143,6 +149,7 @@ func TestFindArtists(t *testing.T) {
 	}
 }
 
+// TestUpdateArtist tests the change of a artists
 func TestUpdateArtist(t *testing.T) {
 	artists, err := getArtists()
 	if err != nil {
@@ -157,7 +164,7 @@ func TestUpdateArtist(t *testing.T) {
 	updated.Name = "Alter"
 	updated.Email = "alterado@gmail.com"
 
-	newURL := url + updated.ID.Hex()
+	newURL := artistsRoute + updated.ID.Hex()
 
 	body, err := json.Marshal(updated)
 	if err != nil {
@@ -180,6 +187,7 @@ func TestUpdateArtist(t *testing.T) {
 	}
 }
 
+// TestDeleteArtist tests the delete method
 func TestDeleteArtist(t *testing.T) {
 	artists, err := getArtists()
 	if err != nil {
@@ -197,7 +205,7 @@ func TestDeleteArtist(t *testing.T) {
 		{"5b608966767bb623cf13c303", 500},
 	}
 	for _, tr := range tt {
-		req, err := http.NewRequest("DELETE", url+tr.id, nil)
+		req, err := http.NewRequest("DELETE", artistsRoute+tr.id, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -213,6 +221,7 @@ func TestDeleteArtist(t *testing.T) {
 	}
 }
 
+// TestUpdateManyCases test some possibilities of crash in update
 func TestUpdateManyCase(t *testing.T) {
 	tt := []struct {
 		name           string
@@ -243,7 +252,7 @@ func TestUpdateManyCase(t *testing.T) {
 	}
 
 	for _, tr := range tt {
-		req, err := http.NewRequest("PUT", url+tr.id, bytes.NewBuffer([]byte(tr.body)))
+		req, err := http.NewRequest("PUT", artistsRoute+tr.id, bytes.NewBuffer([]byte(tr.body)))
 		if err != nil {
 			t.Error(err)
 		}

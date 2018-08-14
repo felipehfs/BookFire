@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-// Artist represent a person
+// Artist represents a person
 type Artist struct {
 	ID          bson.ObjectId `json:"id,omitempty" bson:"_id,omitempty"`
 	Name        string        `json:"name" bson:"name" binding:"required"`

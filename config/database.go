@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-// NewSession return the connection with mongoDB
+// NewSession returns the connection with mongoDB
 func NewSession() (*mgo.Session, error) {
 	session, err := mgo.Dial("localhost")
 	if err != nil {

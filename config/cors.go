@@ -1,4 +1,4 @@
-//Package config make the setup of all application
+// Package config make the setup of all application
 package config
 
 import (
