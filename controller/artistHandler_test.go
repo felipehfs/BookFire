@@ -18,6 +18,28 @@ const (
 
 var artistsRoute = fmt.Sprintf("http://localhost:%d/artists/", PORT)
 
+// getToken provide the access to database
+func getToken() ([]byte, error) {
+	url := fmt.Sprintf("http://localhost:%v/login/", PORT)
+	form := []byte(`{ "login": "admin", "password": "admin" }`)
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(form))
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+	defer res.Body.Close()
+	fmt.Println(string(body))
+	return body, nil
+}
+
 // TestCreateArtist tests if the insertion works well
 func TestCreateArtist(t *testing.T) {
 	var request = struct {
@@ -39,6 +61,11 @@ func TestCreateArtist(t *testing.T) {
 	client := &http.Client{}
 
 	req, err := http.NewRequest("POST", artistsRoute, bytes.NewBuffer(jsonData))
+	token, err := getToken()
+	if err != nil {
+		t.Error(err)
+	}
+	req.Header.Add("Authorization", string(token))
 	if err != nil {
 		t.Error(err)
 	}
@@ -76,6 +103,11 @@ func checkRequestOK(response *http.Response, t *testing.T) {
 // TestReadArtists tests the data retrieve
 func TestReadArtists(t *testing.T) {
 	request, err := http.NewRequest("GET", artistsRoute, nil)
+	token, err := getToken()
+	if err != nil {
+		t.Error(err)
+	}
+	request.Header.Add("Authorization", string(token))
 	if err != nil {
 		t.Error(err)
 	}
@@ -92,6 +124,12 @@ func TestReadArtists(t *testing.T) {
 // if exists
 func getArtists() ([]model.Artist, error) {
 	req, err := http.NewRequest("GET", artistsRoute, nil)
+	token, err := getToken()
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Add("Authorization", string(token))
 	if err != nil {
 		return nil, err
 	}
@@ -120,32 +158,41 @@ func TestFindArtists(t *testing.T) {
 		t.Error(err)
 	}
 
+	if len(searched) < 1 {
+		t.Error("Empty list")
+	}
+
 	tt := []struct {
 		id       string
 		name     string
 		expected int
 	}{
-		{searched[0].ID.String(), "busca que funciona", 200},
+		{searched[0].ID.Hex(), "busca que funciona", 200},
 		{"5b608966767bb623cf13c303", "busca que falha", 404},
 	}
 
+	token, err := getToken()
+	if err != nil {
+		t.Error(err)
+	}
+
+	auth := string(token)
+
 	for _, tr := range tt {
-		t.Run(tr.name, func(t *testing.T) {
-			req, err := http.NewRequest("GET", artistsRoute+tr.id, nil)
-			if err != nil {
-				t.Fail()
-			}
+		req, err := http.NewRequest("GET", artistsRoute+tr.id, nil)
+		if err != nil {
+			t.Error(err)
+		}
+		req.Header.Add("Authorization", auth)
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			t.Error(err)
+		}
 
-			client := &http.Client{}
-			resp, err := client.Do(req)
-			if err != nil {
-				t.Fail()
-			}
-
-			if resp.StatusCode != tr.expected {
-				t.Errorf("Status code expected %d received %d", tr.expected, resp.StatusCode)
-			}
-		})
+		if resp.StatusCode != tr.expected {
+			t.Errorf("Status code expected %d received %d", tr.expected, resp.StatusCode)
+		}
 	}
 }
 
@@ -160,6 +207,7 @@ func TestUpdateArtist(t *testing.T) {
 	if last < 0 {
 		t.Errorf("empty list")
 	}
+
 	updated := artists[last]
 	updated.Name = "Alter"
 	updated.Email = "alterado@gmail.com"
@@ -171,7 +219,12 @@ func TestUpdateArtist(t *testing.T) {
 		t.Error(err)
 	}
 	req, err := http.NewRequest("PUT", newURL, bytes.NewBuffer(body))
+	token, err := getToken()
 
+	if err != nil {
+		t.Error(err)
+	}
+	req.Header.Add("Authorization", string(token))
 	if err != nil {
 		t.Error(err)
 	}
@@ -204,8 +257,14 @@ func TestDeleteArtist(t *testing.T) {
 		{last.ID.Hex(), 200},
 		{"5b608966767bb623cf13c303", 500},
 	}
+
+	token, err := getToken()
+	if err != nil {
+		t.Error(err)
+	}
 	for _, tr := range tt {
 		req, err := http.NewRequest("DELETE", artistsRoute+tr.id, nil)
+		req.Header.Add("Authorization", string(token))
 		if err != nil {
 			t.Error(err)
 		}
@@ -223,6 +282,15 @@ func TestDeleteArtist(t *testing.T) {
 
 // TestUpdateManyCases test some possibilities of crash in update
 func TestUpdateManyCase(t *testing.T) {
+	artists, err := getArtists()
+	if err != nil {
+		t.Error(err)
+	}
+	if len(artists) < 0 {
+		t.Error("Empty list")
+	}
+	last := artists[len(artists)-1]
+
 	tt := []struct {
 		name           string
 		id             string
@@ -230,8 +298,8 @@ func TestUpdateManyCase(t *testing.T) {
 		statusExpected int
 	}{
 		{"Update which exists",
-			"5b6057e8767bb623cf13c305",
-			`{"name": "Belchior updated", "email": "belchiorupdated@gmail.com"}`,
+			last.ID.Hex(),
+			`{"name": "data updated", "email": "dataupdated@gmail.com"}`,
 			200},
 		{"Update which id not exists",
 			"5b6057e8767bb423cf13c305",
@@ -251,8 +319,14 @@ func TestUpdateManyCase(t *testing.T) {
 			200},
 	}
 
+	token, err := getToken()
+	if err != nil {
+		t.Error(err)
+	}
+
 	for _, tr := range tt {
 		req, err := http.NewRequest("PUT", artistsRoute+tr.id, bytes.NewBuffer([]byte(tr.body)))
+		req.Header.Add("Authorization", string(token))
 		if err != nil {
 			t.Error(err)
 		}
@@ -265,7 +339,7 @@ func TestUpdateManyCase(t *testing.T) {
 		}
 
 		if resp.StatusCode != tr.statusExpected {
-			t.Errorf("Error: expected %d got %d\n", tr.statusExpected, resp.StatusCode)
+			t.Errorf("%s: Error: expected %d got %d\n", tr.name, tr.statusExpected, resp.StatusCode)
 		}
 	}
 }
