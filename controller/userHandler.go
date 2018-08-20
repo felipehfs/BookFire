@@ -59,6 +59,7 @@ func (u *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	w.WriteHeader(http.StatusCreated)
 	fmt.Fprintf(w, tokenString)
 }
 

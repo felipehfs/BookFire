@@ -75,7 +75,9 @@ func TestCreateArtist(t *testing.T) {
 		t.Error(err)
 	}
 
-	checkRequestOK(resp, t)
+	if resp.StatusCode != http.StatusCreated {
+		t.Errorf("Status code expected: %v, got %v", http.StatusCreated, resp.StatusCode)
+	}
 	artists, err := getArtists()
 
 	if err != nil {

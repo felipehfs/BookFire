@@ -40,6 +40,7 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 
 	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(artist)
 }
 
