@@ -22,13 +22,15 @@ func main() {
 	userHandler := controller.NewUserHandler(conn)
 
 	jwt := controller.EnabledJwt()
-	router.HandleFunc("/artists/", jwt(artistHandler.Create)).Methods("POST")
-	router.HandleFunc("/artists/", jwt(artistHandler.Read)).Methods("GET")
-	router.HandleFunc("/artists/{id}", jwt(artistHandler.FindByID)).Methods("GET")
-	router.HandleFunc("/artists/{id}", jwt(artistHandler.Update)).Methods("PUT")
-	router.HandleFunc("/artists/{id}", jwt(artistHandler.Delete)).Methods("DELETE")
-	router.HandleFunc("/register/", userHandler.Create).Methods("POST")
-	router.HandleFunc("/login/", userHandler.Login).Methods("POST")
+	adapt := config.ChainMiddleware(jwt, config.GzipHandler)
+
+	router.HandleFunc("/artists", adapt(artistHandler.Create)).Methods("POST")
+	router.HandleFunc("/artists", adapt(artistHandler.Read)).Methods("GET")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.FindByID)).Methods("GET")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.Update)).Methods("PUT")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.Delete)).Methods("DELETE")
+	router.HandleFunc("/register", userHandler.Create).Methods("POST")
+	router.HandleFunc("/login", userHandler.Login).Methods("POST")
 
 	cors := config.SetupCors()
 	log.Fatal(http.ListenAndServe(":8081", cors(router)))
