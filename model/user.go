@@ -1,3 +1,4 @@
+// Package model contains the entity and business
 package model
 
 import (

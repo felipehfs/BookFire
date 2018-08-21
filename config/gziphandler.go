@@ -1,3 +1,4 @@
+// Package config make the setup of the all app
 package config
 
 import (

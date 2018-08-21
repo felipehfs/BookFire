@@ -1,5 +1,5 @@
 // Package model represents the
-// businness logic of the Rest api
+// business logic of the Rest api
 package model
 
 import (
@@ -24,7 +24,7 @@ func (dao ArtistDAO) getCollection() *mgo.Collection {
 	return dao.conn.DB("bookfire").C("artists")
 }
 
-// Create insert data into database
+// Create inserts data into database
 func (dao ArtistDAO) Create(a Artist) error {
 	return dao.getCollection().Insert(a)
 }

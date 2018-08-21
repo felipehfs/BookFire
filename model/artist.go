@@ -1,4 +1,4 @@
-// Package model represents the bussiness logic
+// Package model represents the business logic
 package model
 
 import (

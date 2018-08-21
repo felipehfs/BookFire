@@ -1,4 +1,4 @@
-// Package model represents the businness api logic
+// Package model represents the business api logic
 package model
 
 import (
