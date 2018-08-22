@@ -20,7 +20,7 @@ var artistsRoute = fmt.Sprintf("http://localhost:%d/artists/", PORT)
 
 // getToken provide the access to database
 func getToken() ([]byte, error) {
-	url := fmt.Sprintf("http://localhost:%v/login/", PORT)
+	url := fmt.Sprintf("http://localhost:%v/login", PORT)
 	form := []byte(`{ "login": "admin", "password": "admin" }`)
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(form))
 	if err != nil {

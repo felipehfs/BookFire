@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"time"
 
+	"gopkg.in/mgo.v2/bson"
+
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dgrijalva/jwt-go/request"
 
@@ -41,6 +43,7 @@ func (u *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	dao := model.NewUserDAO(u.db)
+	user.ID = bson.NewObjectIdWithTime(time.Now())
 	if err := dao.Create(user); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

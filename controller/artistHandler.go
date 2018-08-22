@@ -7,6 +7,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/gorilla/mux"
 
@@ -33,6 +36,7 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 	}
 	dao := model.NewArtistDAO(handle.db)
 
+	artist.ID = bson.NewObjectIdWithTime(time.Now())
 	if err := dao.Create(artist); err != nil {
 		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)

@@ -24,8 +24,8 @@ func main() {
 	jwt := controller.EnabledJwt()
 	adapt := config.ChainMiddleware(jwt, config.GzipHandler)
 
-	router.HandleFunc("/artists", adapt(artistHandler.Create)).Methods("POST")
-	router.HandleFunc("/artists", adapt(artistHandler.Read)).Methods("GET")
+	router.HandleFunc("/artists/", adapt(artistHandler.Create)).Methods("POST")
+	router.HandleFunc("/artists/", adapt(artistHandler.Read)).Methods("GET")
 	router.HandleFunc("/artists/{id}", adapt(artistHandler.FindByID)).Methods("GET")
 	router.HandleFunc("/artists/{id}", adapt(artistHandler.Update)).Methods("PUT")
 	router.HandleFunc("/artists/{id}", adapt(artistHandler.Delete)).Methods("DELETE")
