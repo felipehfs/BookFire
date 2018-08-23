@@ -7,7 +7,7 @@ import (
 	"github.com/gorilla/handlers"
 )
 
-// Setup the cors headers
+// SetupCors the cors headers
 func SetupCors() func(http.Handler) http.Handler {
 	origins := handlers.AllowedOrigins([]string{"*"})
 	methods := handlers.AllowedMethods([]string{"POST", "GET", "OPTIONS", "PUT", "DELETE", "TRACE", "HEAD"})
