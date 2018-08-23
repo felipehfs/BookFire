@@ -6,7 +6,12 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
+
+var zippers = sync.Pool{New: func() interface{} {
+	return gzip.NewWriter(nil)
+}}
 
 type gzipResponseWriter struct {
 	io.Writer
@@ -26,7 +31,10 @@ func GzipHandler(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		w.Header().Set("Content-Encoding", "gzip")
-		gz := gzip.NewWriter(w)
+		gz := zippers.Get().(*gzip.Writer)
+
+		gz.Reset(w)
+		defer zippers.Put(gz)
 		defer gz.Close()
 		next(gzipResponseWriter{Writer: gz, ResponseWriter: w}, r)
 	}
