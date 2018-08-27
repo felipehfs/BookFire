@@ -5,6 +5,11 @@ import Table from './components/Table'
 import Form from './components/Form'
 import axios from 'axios'
 
+const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE1MzgwMTA0NzUsImlheCI6IjIwMTgtMDgtMjJUMjI6MDc6NTUuMTQzMzc3MzItMDM6MDAiLCJzdWIiOiJhZG1pbiJ9.hBrizG4260n7TI2lPV55rCI9h-xNTnzKB86N4wIKB68"
+const header = {headers: {
+  "Authorization": `Bearer ${token}`
+}}
+
 class App extends Component {
   constructor(props){
     super(props)
@@ -35,7 +40,7 @@ class App extends Component {
   }
 
   componentDidMount(){
-    axios.get(`http://localhost:8081/artists/`)
+    axios.get(`http://localhost:8081/artists/`, header)
     .then(resp => {
       const data = resp.data === null? []: resp.data 
       this.setState({...this.state, artists: data})
@@ -44,7 +49,7 @@ class App extends Component {
   }
 
   refresh(){
-    axios.get(`http://localhost:8081/artists/`)
+    axios.get(`http://localhost:8081/artists/`, header)
     .then(resp => {
       const data = resp.data === null? []: resp.data 
       this.setState({...this.state, artists: data})
@@ -58,20 +63,20 @@ class App extends Component {
     const {userInput} = this.state 
   
     if (this.state.id === ''){
-      axios.post("http://localhost:8081/artists/", userInput)
+      axios.post("http://localhost:8081/artists/", userInput, header)
       .then(resp => {
         this.refresh()
       }).catch(e => console.log(e))
     } else {
       const id = this.state.id
-      axios.put(`http://localhost:8081/artists/${id}`, userInput)
+      axios.put(`http://localhost:8081/artists/${id}`,userInput, header)
       .then(resp => this.refresh())
     }  
   }
   onDelete(e) {
     e.preventDefault()
     const id = e.target.getAttribute("data-id")
-    axios.delete(`http://localhost:8081/artists/${id}`)
+    axios.delete(`http://localhost:8081/artists/${id}`, header)
     .then(resp => this.refresh())
   } 
   onUpdate(e) {

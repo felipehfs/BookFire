@@ -19,11 +19,18 @@ func main() {
 
 	router := mux.NewRouter()
 	artistHandler := controller.NewArtistHandler(conn)
+	userHandler := controller.NewUserHandler(conn)
 
-	router.HandleFunc("/artists/", artistHandler.Create).Methods("POST")
-	router.HandleFunc("/artists/", artistHandler.Read).Methods("GET")
-	router.HandleFunc("/artists/{id}", artistHandler.Update).Methods("PUT")
-	router.HandleFunc("/artists/{id}", artistHandler.Delete).Methods("DELETE")
+	jwt := controller.EnabledJwt()
+	adapt := config.ChainMiddleware(jwt, config.GzipHandler)
+
+	router.HandleFunc("/artists/", adapt(artistHandler.Create)).Methods("POST")
+	router.HandleFunc("/artists/", adapt(artistHandler.Read)).Methods("GET")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.FindByID)).Methods("GET")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.Update)).Methods("PUT")
+	router.HandleFunc("/artists/{id}", adapt(artistHandler.Delete)).Methods("DELETE")
+	router.HandleFunc("/register", userHandler.Create).Methods("POST")
+	router.HandleFunc("/login", userHandler.Login).Methods("POST")
 
 	cors := config.SetupCors()
 	log.Fatal(http.ListenAndServe(":8081", cors(router)))

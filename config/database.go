@@ -1,14 +1,15 @@
+// Package config make the setup of all application
 package config
 
 import (
 	"gopkg.in/mgo.v2"
 )
 
-// NewSession return the connection with mongoDB
+// NewSession returns the connection with mongoDB
 func NewSession() (*mgo.Session, error) {
-	s, err := mgo.Dial("localhost")
+	session, err := mgo.Dial("localhost")
 	if err != nil {
 		return nil, err
 	}
-	return s, nil
+	return session, nil
 }

@@ -1,8 +1,15 @@
+// Package controller represents
+// the handler which operates
+// the data on the routes
 package controller
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
+	"time"
+
+	"gopkg.in/mgo.v2/bson"
 
 	"github.com/gorilla/mux"
 
@@ -10,7 +17,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-// ArtistHandler represent the controller of artist
+// ArtistHandler represents the controller of artist
 type ArtistHandler struct {
 	db *mgo.Session
 }
@@ -20,17 +27,24 @@ func NewArtistHandler(d *mgo.Session) *ArtistHandler {
 	return &ArtistHandler{d}
 }
 
-// Create - add new resource to database
+// Create - adds new resource to database
 func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 	var artist model.Artist
 	if err := json.NewDecoder(req.Body).Decode(&artist); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotAcceptable)
 	}
 	dao := model.NewArtistDAO(handle.db)
+
+	artist.ID = bson.NewObjectIdWithTime(time.Now())
 	if err := dao.Create(artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(artist)
 }
 
@@ -38,23 +52,52 @@ func (handle ArtistHandler) Create(w http.ResponseWriter, req *http.Request) {
 func (handle ArtistHandler) Read(w http.ResponseWriter, req *http.Request) {
 	dao := model.NewArtistDAO(handle.db)
 	results, err := dao.Read()
+
 	if err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(results)
 }
 
+// Update represents the controller that makes
+// the changes of a artist
 func (handle ArtistHandler) Update(w http.ResponseWriter, req *http.Request) {
 	var artist model.Artist
 	if err := json.NewDecoder(req.Body).Decode(&artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
 	params := mux.Vars(req)
-	err := model.NewArtistDAO(handle.db).Update(params["id"], artist)
-	if err != nil {
+
+	dao := model.NewArtistDAO(handle.db)
+
+	if err := dao.Update(params["id"], artist); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(artist)
+}
+
+// FindByID searches the artist on the database
+func (handle ArtistHandler) FindByID(w http.ResponseWriter, req *http.Request) {
+	param := mux.Vars(req)
+
+	artist, err := model.NewArtistDAO(handle.db).FindByID(param["id"])
+	if err != nil {
+		log.Println(err)
+		http.Error(w, err.Error(), http.StatusNotFound)
+	}
+
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(artist)
 }
@@ -62,9 +105,12 @@ func (handle ArtistHandler) Update(w http.ResponseWriter, req *http.Request) {
 // Delete - removes the resource from the database
 func (handle ArtistHandler) Delete(w http.ResponseWriter, req *http.Request) {
 	params := mux.Vars(req)
+
 	if err := model.NewArtistDAO(handle.db).Delete(params["id"]); err != nil {
+		log.Println(err)
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
+	log.Printf("%s - %s - %s\n", req.Method, req.Host, req.URL.Path)
 	w.Write([]byte("success!"))
 }
